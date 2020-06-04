@@ -16,6 +16,7 @@ using MongoDB.Bson.Serialization.Attributes;
 using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Globalization;
+using System.Linq;
 
 namespace FindAndExploreApi
 {
@@ -27,6 +28,7 @@ namespace FindAndExploreApi
         [BsonElement("Category")]
         public string Category { get; set; }
 
+        [BsonElement("Location")]
         public GeoJsonPoint<GeoJson2DGeographicCoordinates> Location { get; set; }
 
         [BsonId]
@@ -44,6 +46,7 @@ namespace FindAndExploreApi
         [BsonElement("Name")]
         public string Name { get; set; }
 
+        [BsonElement("Polygon")]
         public GeoJsonPolygon<GeoJson2DGeographicCoordinates> Polygon { get; private set; }
 
 
@@ -76,19 +79,18 @@ namespace FindAndExploreApi
         private static MongoClient InitializeMongoClient()
         {
             // Perform any initialization here
-            string connectionString = @"mongodb://richardwoollcott:Incywincy100@geocluster0-shard-00-00-pxkjn.azure.mongodb.net:27017,geocluster0-shard-00-01-pxkjn.azure.mongodb.net:27017,geocluster0-shard-00-02-pxkjn.azure.mongodb.net:27017/test?ssl=true&replicaSet=GeoCluster0-shard-0&authSource=admin&retryWrites=true&w=majority";
+            //v2.5 on connection string
+            //var connectionString = "mongodb+srv://richardwoollcott:Incywincy100@geocluster0-pxkjn.azure.mongodb.net/test?ssl=true&retryWrites=true&w=majority";
+
+            //earlier driver connection string was needed for mobile app
+            //string connectionString = @"mongodb://richardwoollcott:Incywincy100@geocluster0-shard-00-00-pxkjn.azure.mongodb.net:27017,geocluster0-shard-00-01-pxkjn.azure.mongodb.net:27017,geocluster0-shard-00-02-pxkjn.azure.mongodb.net:27017/test?ssl=true&replicaSet=GeoCluster0-shard-0&authSource=admin&retryWrites=true&w=majority";
+
+            var connectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING");
 
             MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));
             settings.SslSettings = new SslSettings { EnabledSslProtocols = SslProtocols.Tls12 };
 
-            return new MongoClient(settings);
-              
-            /*
-            var uri = new Uri("example");
-            var authKey = "authKey";
-
-            return new DocumentClient(uri, authKey);/
-            */
+            return new MongoClient(settings);            
         }
 
         private static IMongoDatabase InitializeMongoDatabase()
@@ -107,11 +109,11 @@ namespace FindAndExploreApi
         }        
 
         [FunctionName("GetCurrentArea")]
-        public static async Task<IActionResult> Run(
+        public static async Task<IActionResult> RunAreas(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            log.LogInformation("C# HTTP trigger function processed a request for GetCurrentArea.");
 
             double lat = 0.0F;
             double lon = 0.0F;
@@ -144,9 +146,9 @@ namespace FindAndExploreApi
             {
                 var currentLocation = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(new GeoJson2DGeographicCoordinates(lat, lon));
 
-                var areafilter = Builders<SupportedArea>.Filter.GeoIntersects<GeoJson2DGeographicCoordinates>(x => x.Polygon, currentLocation);
+                var areaFilter = Builders<SupportedArea>.Filter.GeoIntersects<GeoJson2DGeographicCoordinates>(x => x.Polygon, currentLocation);
 
-                supportedAreas = await supportedAreaCollection.Find(areafilter).ToListAsync();
+                supportedAreas = await supportedAreaCollection.Find(areaFilter).ToListAsync();
             }
             catch (Exception e)
             {               
@@ -154,6 +156,50 @@ namespace FindAndExploreApi
             }
 
             return (ActionResult)new OkObjectResult(supportedAreas);
+        }
+
+        [FunctionName("GetAreasPointsOfInterest")]
+        public static async Task<IActionResult> RunPointsOfInterest(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            ILogger log)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request for GetAreasPointsOfInterest.");
+
+            string locationIdQueryParameter = req.Query["locationId"].ToString();
+
+            int locationId = 0;
+            
+            if (int.TryParse(locationIdQueryParameter, NumberStyles.AllowParentheses, CultureInfo.InvariantCulture, out locationId))
+            {
+                locationId = int.Parse(locationIdQueryParameter, NumberStyles.AllowParentheses, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                return new BadRequestObjectResult("Please pass a locationId parameter");
+            }
+
+            List<PointOfInterest> pointsWithinCurrentArea;
+
+            try
+            {
+               var areaLocationIdFilter = Builders<SupportedArea>.Filter.Where(a => a.LocationId == locationId);
+
+                var supportedAreasByLocationId = await supportedAreaCollection.Find(areaLocationIdFilter).ToListAsync();
+                if(!supportedAreasByLocationId.Any())
+                    return new BadRequestObjectResult($"Error: No supported area found for locationId {locationId}");
+
+                var currentArea = supportedAreasByLocationId.SingleOrDefault();
+
+                var areaFilter = Builders<PointOfInterest>.Filter.GeoIntersects(x => x.Location, currentArea?.Polygon);
+
+                pointsWithinCurrentArea = await pointOfInterestCollection.Find(areaFilter).ToListAsync();
+            }
+            catch (Exception e)
+            {
+                return new BadRequestObjectResult("Error: " + e.Message);
+            }
+
+            return (ActionResult)new OkObjectResult(pointsWithinCurrentArea);
         }
     }
 }
