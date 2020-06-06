@@ -2,11 +2,15 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+    <UserSecretsId>8f3a6c27-f0a6-45be-9b84-50779b00b7a3</UserSecretsId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GeoJSON.Net" Version="1.2.15" />
+    <PackageReference Include="GeoJSON.Net" Version="1.2.19" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="3.0.7" />
     <PackageReference Include="MongoDB.Driver" Version="2.10.4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\FindAndExploreApi.Models\FindAndExploreApi.Models.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

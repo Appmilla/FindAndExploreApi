@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30128.74
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FindAndExploreApi", "FindAndExploreApi.csproj", "{1542DE86-DADF-411A-A7BD-35D8226788E7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FoursquarePlacesApi", "..\FoursquarePlacesApi\FoursquarePlacesApi.csproj", "{78FEAFBF-F76D-4846-924A-2905FB56039A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FindAndExploreApi.Models", "..\FindAndExploreApi.Models\FindAndExploreApi.Models.csproj", "{655F8D5A-5C8B-4FDD-AF20-6693D0AD93D5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{1542DE86-DADF-411A-A7BD-35D8226788E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1542DE86-DADF-411A-A7BD-35D8226788E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1542DE86-DADF-411A-A7BD-35D8226788E7}.Release|Any CPU.Build.0 = Release|Any CPU
-		{78FEAFBF-F76D-4846-924A-2905FB56039A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{78FEAFBF-F76D-4846-924A-2905FB56039A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{78FEAFBF-F76D-4846-924A-2905FB56039A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{78FEAFBF-F76D-4846-924A-2905FB56039A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{655F8D5A-5C8B-4FDD-AF20-6693D0AD93D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{655F8D5A-5C8B-4FDD-AF20-6693D0AD93D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{655F8D5A-5C8B-4FDD-AF20-6693D0AD93D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{655F8D5A-5C8B-4FDD-AF20-6693D0AD93D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

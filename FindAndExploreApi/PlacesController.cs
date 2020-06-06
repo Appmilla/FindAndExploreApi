@@ -1,67 +1,21 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-
-using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Driver.GeoJsonObjectModel;
-using MongoDB.Bson.Serialization.Attributes;
 
 using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Globalization;
 using System.Linq;
+using FindAndExploreApi.Models;
 
 namespace FindAndExploreApi
 {
-    public class PointOfInterest
-    {
-        [BsonElement("Name")]
-        public string Name { get; set; }
-
-        [BsonElement("Category")]
-        public string Category { get; set; }
-
-        [BsonElement("Location")]
-        public GeoJsonPoint<GeoJson2DGeographicCoordinates> Location { get; set; }
-
-        [BsonId]
-        public ObjectId Id { get; set; }
-    }
-
-    public class SupportedArea
-    {
-        [BsonId]
-        public ObjectId Id { get; set; }
-
-        [BsonElement("LocationId")]
-        public int LocationId { get; set; }
-
-        [BsonElement("Name")]
-        public string Name { get; set; }
-
-        [BsonElement("Polygon")]
-        public GeoJsonPolygon<GeoJson2DGeographicCoordinates> Polygon { get; private set; }
-
-
-        public void SetArea(List<GeoJson2DGeographicCoordinates> coordinatesList)
-                                                        => SetPolygon(coordinatesList);
-
-        private void SetPolygon(List<GeoJson2DGeographicCoordinates> coordinatesList)
-        {
-            Polygon = new GeoJsonPolygon<GeoJson2DGeographicCoordinates>(
-                      new GeoJsonPolygonCoordinates<GeoJson2DGeographicCoordinates>(
-                      new GeoJsonLinearRingCoordinates<GeoJson2DGeographicCoordinates>(
-                                                                     coordinatesList)));
-        }
-    }
-
     public static class PlacesController
     {              
         private static Lazy<MongoClient> lazyMongoClient = new Lazy<MongoClient>(InitializeMongoClient);
@@ -78,13 +32,6 @@ namespace FindAndExploreApi
 
         private static MongoClient InitializeMongoClient()
         {
-            // Perform any initialization here
-            //v2.5 on connection string
-            //var connectionString = "mongodb+srv://richardwoollcott:Incywincy100@geocluster0-pxkjn.azure.mongodb.net/test?ssl=true&retryWrites=true&w=majority";
-
-            //earlier driver connection string was needed for mobile app
-            //string connectionString = @"mongodb://richardwoollcott:Incywincy100@geocluster0-shard-00-00-pxkjn.azure.mongodb.net:27017,geocluster0-shard-00-01-pxkjn.azure.mongodb.net:27017,geocluster0-shard-00-02-pxkjn.azure.mongodb.net:27017/test?ssl=true&replicaSet=GeoCluster0-shard-0&authSource=admin&retryWrites=true&w=majority";
-
             var connectionString = Environment.GetEnvironmentVariable("MONGODB_CONNECTION_STRING");
 
             MongoClientSettings settings = MongoClientSettings.FromUrl(new MongoUrl(connectionString));

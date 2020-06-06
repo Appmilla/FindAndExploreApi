@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Description>Api contract models for Find and Explore</Description>
+    <RepositoryUrl>https://pkgs.dev.azure.com/appmilla/FindAndExplore/_packaging/FindAndExplore/nuget/v3/index.json</RepositoryUrl>
+    <PackageProjectUrl>https://dev.azure.com/appmilla/FindAndExplore</PackageProjectUrl>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="GeoJSON.Net" Version="1.2.19" />
+    <PackageReference Include="MongoDB.Driver" Version="2.10.4" />
+  </ItemGroup>
+
+</Project>
