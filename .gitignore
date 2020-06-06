@@ -4,3 +4,5 @@
 
 /FindAndExploreApi.Models/bin
 /FindAndExploreApi.Models/obj
+/FindAndExploreApi.Client/bin
+/FindAndExploreApi.Client/obj

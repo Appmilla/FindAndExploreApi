@@ -10,7 +10,7 @@
     <PackageReference Include="MongoDB.Driver" Version="2.10.4" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FindAndExploreApi.Models\FindAndExploreApi.Models.csproj" />
+    <ProjectReference Include="..\FindAndExploreApi.Client\FindAndExploreApi.Client.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">

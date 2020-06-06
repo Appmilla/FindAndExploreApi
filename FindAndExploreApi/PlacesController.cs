@@ -12,7 +12,7 @@ using System.Collections.Generic;
 using System.Security.Authentication;
 using System.Globalization;
 using System.Linq;
-using FindAndExploreApi.Models;
+using FindAndExploreApi.Client;
 
 namespace FindAndExploreApi
 {

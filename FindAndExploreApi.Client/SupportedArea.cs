@@ -4,7 +4,7 @@ using MongoDB.Bson;
 using MongoDB.Driver.GeoJsonObjectModel;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace FindAndExploreApi.Models
+namespace FindAndExploreApi.Client
 {
     public class SupportedArea
     {
