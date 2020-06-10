@@ -13,22 +13,23 @@ using System.Security.Authentication;
 using System.Globalization;
 using System.Linq;
 using FindAndExploreApi.Client;
+using GeoJSON.Net.Geometry;
 
 namespace FindAndExploreApi
 {
     public static class PlacesController
     {              
-        private static Lazy<MongoClient> lazyMongoClient = new Lazy<MongoClient>(InitializeMongoClient);
+        private static readonly Lazy<MongoClient> lazyMongoClient = new Lazy<MongoClient>(InitializeMongoClient);
         private static MongoClient mongoClient => lazyMongoClient.Value;
 
-        private static Lazy<IMongoDatabase> lazyMongoDatabase = new Lazy<IMongoDatabase>(InitializeMongoDatabase);
+        private static readonly Lazy<IMongoDatabase> lazyMongoDatabase = new Lazy<IMongoDatabase>(InitializeMongoDatabase);
         private static IMongoDatabase mongoDatabase => lazyMongoDatabase.Value;
 
-        private static Lazy<IMongoCollection<PointOfInterest>> lazyPointOfInterestCollection = new Lazy<IMongoCollection<PointOfInterest>>(InitializePointsOfInterest);
-        private static IMongoCollection<PointOfInterest> pointOfInterestCollection => lazyPointOfInterestCollection.Value;
+        private static readonly Lazy<IMongoCollection<MongoPointOfInterest>> lazyPointOfInterestCollection = new Lazy<IMongoCollection<MongoPointOfInterest>>(InitializePointsOfInterest);
+        private static IMongoCollection<MongoPointOfInterest> pointOfInterestCollection => lazyPointOfInterestCollection.Value;
 
-        private static Lazy<IMongoCollection<SupportedArea>> lazySupportedArea = new Lazy<IMongoCollection<SupportedArea>>(InitializeSupportedAreas);
-        private static IMongoCollection<SupportedArea> supportedAreaCollection => lazySupportedArea.Value;
+        private static readonly Lazy<IMongoCollection<MongoFence>> lazySupportedArea = new Lazy<IMongoCollection<MongoFence>>(InitializeSupportedAreas);
+        private static IMongoCollection<MongoFence> supportedAreaCollection => lazySupportedArea.Value;
 
         private static MongoClient InitializeMongoClient()
         {
@@ -45,14 +46,14 @@ namespace FindAndExploreApi
             return mongoClient.GetDatabase("Places");
         }
 
-        private static IMongoCollection<PointOfInterest> InitializePointsOfInterest()
+        private static IMongoCollection<MongoPointOfInterest> InitializePointsOfInterest()
         {
-            return mongoDatabase.GetCollection<PointOfInterest>("PointsOfInterest", new MongoCollectionSettings { ReadPreference = ReadPreference.Nearest });
+            return mongoDatabase.GetCollection<MongoPointOfInterest>("PointsOfInterest", new MongoCollectionSettings { ReadPreference = ReadPreference.Nearest });
         }
 
-        private static IMongoCollection<SupportedArea> InitializeSupportedAreas()
+        private static IMongoCollection<MongoFence> InitializeSupportedAreas()
         {            
-            return mongoDatabase.GetCollection<SupportedArea>("SupportedAreas", new MongoCollectionSettings { ReadPreference = ReadPreference.Nearest });
+            return mongoDatabase.GetCollection<MongoFence>("SupportedAreas", new MongoCollectionSettings { ReadPreference = ReadPreference.Nearest });
         }        
 
         [FunctionName("GetCurrentArea")]
@@ -62,14 +63,11 @@ namespace FindAndExploreApi
         {
             log.LogInformation("C# HTTP trigger function processed a request for GetCurrentArea.");
 
-            double lat = 0.0F;
-            double lon = 0.0F;
+            var latQueryParameter = req.Query["lat"].ToString().Trim('f', 'F');
 
-            string latQueryParameter = req.Query["lat"].ToString().Trim('f', 'F');
+            var lonQueryParameter = req.Query["lon"].ToString().Trim('f', 'F');
 
-            string lonQueryParameter = req.Query["lon"].ToString().Trim('f', 'F');
-
-            if (double.TryParse(latQueryParameter, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowParentheses, CultureInfo.InvariantCulture, out lat))
+            if (double.TryParse(latQueryParameter, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowParentheses, CultureInfo.InvariantCulture, out var lat))
             {
                 lat = double.Parse(latQueryParameter, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowParentheses, CultureInfo.InvariantCulture);
             }
@@ -78,7 +76,7 @@ namespace FindAndExploreApi
                 return new BadRequestObjectResult("Please pass a lat parameter");
             }
 
-            if (double.TryParse(lonQueryParameter,NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowParentheses, CultureInfo.InvariantCulture, out lon))
+            if (double.TryParse(lonQueryParameter,NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowParentheses, CultureInfo.InvariantCulture, out var lon))
             {
                 lon = double.Parse(lonQueryParameter, NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint | NumberStyles.AllowParentheses, CultureInfo.InvariantCulture);
             }
@@ -86,23 +84,38 @@ namespace FindAndExploreApi
             {
                 return new BadRequestObjectResult("Please pass a lon parameter");
             }
+            
+            var result = new List<SupportedArea>();
 
-            List<SupportedArea> supportedAreas;
+            try
+            {                
+                var currentLocation = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(new GeoJson2DGeographicCoordinates(lon, lat));
 
-            try 
-            {
-                var currentLocation = new GeoJsonPoint<GeoJson2DGeographicCoordinates>(new GeoJson2DGeographicCoordinates(lat, lon));
+                var areaFilter = Builders<MongoFence>.Filter.GeoIntersects(x => x.Polygon, currentLocation);
 
-                var areaFilter = Builders<SupportedArea>.Filter.GeoIntersects<GeoJson2DGeographicCoordinates>(x => x.Polygon, currentLocation);
+                var supportedAreas = await supportedAreaCollection.Find(areaFilter).ToListAsync();
+                
+                foreach (var area in supportedAreas)
+                {
+                    var newArea = new SupportedArea
+                    {
+                        Id = area.Id.ToString(),
+                        Name = area.Name,
+                        LocationId = area.LocationId                        
+                    };
 
-                supportedAreas = await supportedAreaCollection.Find(areaFilter).ToListAsync();
+                    var positions = area.Polygon.Coordinates.Exterior.Positions.Select(point => new Position(point.Latitude, point.Longitude)).Cast<IPosition>().ToList();
+
+                    newArea.SetArea(positions);
+                    result.Add(newArea);
+                }                
             }
             catch (Exception e)
             {               
                 return new BadRequestObjectResult("Error: " + e.Message);
             }
 
-            return (ActionResult)new OkObjectResult(supportedAreas);
+            return new OkObjectResult(result);
         }
 
         [FunctionName("GetAreasPointsOfInterest")]
@@ -112,11 +125,9 @@ namespace FindAndExploreApi
         {
             log.LogInformation("C# HTTP trigger function processed a request for GetAreasPointsOfInterest.");
 
-            string locationIdQueryParameter = req.Query["locationId"].ToString();
+            var locationIdQueryParameter = req.Query["locationId"].ToString();
 
-            int locationId = 0;
-            
-            if (int.TryParse(locationIdQueryParameter, NumberStyles.AllowParentheses, CultureInfo.InvariantCulture, out locationId))
+            if (int.TryParse(locationIdQueryParameter, NumberStyles.AllowParentheses, CultureInfo.InvariantCulture, out var locationId))
             {
                 locationId = int.Parse(locationIdQueryParameter, NumberStyles.AllowParentheses, CultureInfo.InvariantCulture);
             }
@@ -124,12 +135,12 @@ namespace FindAndExploreApi
             {
                 return new BadRequestObjectResult("Please pass a locationId parameter");
             }
-
-            List<PointOfInterest> pointsWithinCurrentArea;
+           
+            var result = new List<PointOfInterest>();
 
             try
             {
-               var areaLocationIdFilter = Builders<SupportedArea>.Filter.Where(a => a.LocationId == locationId);
+               var areaLocationIdFilter = Builders<MongoFence>.Filter.Where(a => a.LocationId == locationId);
 
                 var supportedAreasByLocationId = await supportedAreaCollection.Find(areaLocationIdFilter).ToListAsync();
                 if(!supportedAreasByLocationId.Any())
@@ -137,16 +148,24 @@ namespace FindAndExploreApi
 
                 var currentArea = supportedAreasByLocationId.SingleOrDefault();
 
-                var areaFilter = Builders<PointOfInterest>.Filter.GeoIntersects(x => x.Location, currentArea?.Polygon);
+                var areaFilter = Builders<MongoPointOfInterest>.Filter.GeoIntersects(x => x.Location, currentArea?.Polygon);
 
-                pointsWithinCurrentArea = await pointOfInterestCollection.Find(areaFilter).ToListAsync();
+                var pointsWithinCurrentArea = await pointOfInterestCollection.Find(areaFilter).ToListAsync();
+
+                result.AddRange(pointsWithinCurrentArea.Select(point => new PointOfInterest
+                {
+                    Id = point.Id.ToString(),
+                    Name = point.Name,
+                    Category = point.Category,
+                    Location = new Point(new Position(point.Location.Coordinates.Latitude, point.Location.Coordinates.Longitude))
+                }));
             }
             catch (Exception e)
             {
                 return new BadRequestObjectResult("Error: " + e.Message);
             }
 
-            return (ActionResult)new OkObjectResult(pointsWithinCurrentArea);
+            return new OkObjectResult(result);
         }
     }
 }
