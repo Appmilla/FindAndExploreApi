@@ -1,6 +1,12 @@
 # FindAndExploreApi
 Azure Serverless Functions Api connecting to MongoDB Atlas on Azure.
 
+Login to MongoDB at https://account.mongodb.com/account/login using rich work email and Incywincy100
+
+click on Collections and you can view the data
+
+click on the Connect button and choose the bottom option 'Connect using MongoDB compass. this will give you the connection string and download libks for the Compass app which is good for viewing and modifying the database
+
 Queries for Postman
 
 To the app service:
