@@ -21,6 +21,7 @@ Ocp-Apim-Subscription-Key 12e7dd82e8e94a67a4cc70663f9cf46d
 Ocp-Apim-Trace true
 
 https://apim-find-and-explore.azure-api.net/FindAndExploreApi-dev/GetCurrentArea?lat=51.0664995383346f&lon=-3.0453250843303f
+
 https://apim-find-and-explore.azure-api.net/FindAndExploreApi-dev/GetAreasPointsOfInterest?locationId=1234
 
 
