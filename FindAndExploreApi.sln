@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30128.74
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FindAndExploreApi.Client", "FindAndExploreApi.Client\FindAndExploreApi.Client.csproj", "{4BF72695-D2CD-4C8F-A3BC-1A732DCCDB0D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FindAndExploreApi", "FindAndExploreApi\FindAndExploreApi.csproj", "{F31DAFCA-2DD1-49E4-BC65-FB12BCECDBCC}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4BF72695-D2CD-4C8F-A3BC-1A732DCCDB0D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4BF72695-D2CD-4C8F-A3BC-1A732DCCDB0D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4BF72695-D2CD-4C8F-A3BC-1A732DCCDB0D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4BF72695-D2CD-4C8F-A3BC-1A732DCCDB0D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F31DAFCA-2DD1-49E4-BC65-FB12BCECDBCC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F31DAFCA-2DD1-49E4-BC65-FB12BCECDBCC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F31DAFCA-2DD1-49E4-BC65-FB12BCECDBCC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F31DAFCA-2DD1-49E4-BC65-FB12BCECDBCC}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {12DFA950-412A-4B90-8755-DDA95C888DAA}
+	EndGlobalSection
+EndGlobal

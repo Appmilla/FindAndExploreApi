@@ -14,6 +14,7 @@ using System.Globalization;
 using System.Linq;
 using FindAndExploreApi.Client;
 using GeoJSON.Net.Geometry;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace FindAndExploreApi
 {
@@ -54,14 +55,30 @@ namespace FindAndExploreApi
         private static IMongoCollection<MongoFence> InitializeSupportedAreas()
         {            
             return mongoDatabase.GetCollection<MongoFence>("SupportedAreas", new MongoCollectionSettings { ReadPreference = ReadPreference.Nearest });
-        }        
-
-        [FunctionName("GetCurrentArea")]
-        public static async Task<IActionResult> RunAreas(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+        }
+        
+        [FunctionName("Health")]
+        public static async Task<IActionResult> RunHealthCheck(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request for GetCurrentArea.");
+            log.LogInformation("C# HTTP trigger function processed a request for Health Check.");
+
+            var supportedAreasOk = await supportedAreaCollection.AsQueryable().AnyAsync();
+
+            var pointsOfInterestOk = await pointOfInterestCollection.AsQueryable().AnyAsync();
+
+            return supportedAreasOk && pointsOfInterestOk
+                ? new OkObjectResult(HealthCheckResult.Healthy("A healthy result."))
+                : new OkObjectResult(HealthCheckResult.Unhealthy("An unhealthy result."));
+        }        
+
+        [FunctionName("CurrentArea")]
+        public static async Task<IActionResult> RunAreas(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
+            ILogger log)
+        {
+            log.LogInformation("C# HTTP trigger function processed a request for CurrentArea.");
 
             var latQueryParameter = req.Query["lat"].ToString().Trim('f', 'F');
 
@@ -118,12 +135,12 @@ namespace FindAndExploreApi
             return new OkObjectResult(result);
         }
 
-        [FunctionName("GetAreasPointsOfInterest")]
+        [FunctionName("PointsOfInterest")]
         public static async Task<IActionResult> RunPointsOfInterest(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
             ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request for GetAreasPointsOfInterest.");
+            log.LogInformation("C# HTTP trigger function processed a request for PointsOfInterest.");
 
             var locationIdQueryParameter = req.Query["locationId"].ToString();
 
