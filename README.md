@@ -1,13 +1,7 @@
 # FindAndExploreApi
-Azure Serverless Functions Api connecting to MongoDB Atlas on Azure.
+This repo contains Azure Serverless Functions Api connecting to MongoDB Atlas on Azure.
 
-https://docs.microsoft.com/en-us/azure/azure-functions/functions-create-your-first-function-visual-studio
-
-https://docs.microsoft.com/en-us/azure/azure-functions/functions-dotnet-class-library
-
-https://docs.microsoft.com/en-us/azure/azure-functions/functions-reference
-
-https://docs.microsoft.com/en-us/azure/azure-functions/functions-best-practices
+It is used by the Find and Explore mobile app.
 
 Queries for Postman
 
